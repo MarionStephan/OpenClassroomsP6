@@ -15,9 +15,13 @@ mongoose.connect('mongodb+srv://Marion:MotDePasse@cluster0.cahhzo4.mongodb.net/?
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
 
+app.get('/localhost:3000/api', function (req, res) {
+  res.send("Hello from the root application URL");
+});
 
 
-// CORS - partage de ressources entre serveurs
+app.listen(0, () => console.log('Application is running'));
+
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
@@ -27,7 +31,7 @@ app.use((req, res, next) => {
 
 
 app.use(express.json());
-// app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/auth', userRoutes);
 app.use('/api/sauce', sauceRoutes);
 
