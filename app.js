@@ -14,21 +14,12 @@ mongoose.connect('mongodb+srv://Marion:MotDePasse@cluster0.cahhzo4.mongodb.net/?
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
-
-app.get('/localhost:3000/api', function (req, res) {
-  res.send("Hello from the root application URL");
-});
-
-
-app.listen(0, () => console.log('Application is running'));
-
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   next();
 });
-
 
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
