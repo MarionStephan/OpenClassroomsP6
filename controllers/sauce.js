@@ -94,3 +94,40 @@ exports.getOneSauce = (req, res, next) => {
         }
     );
 };
+
+exports.likeOrDislike = (req, res, next) => {
+    const { id } = req.params;
+    const { userId } = req.auth;
+
+    Sauce.findById(id)
+        .then((sauce) => {
+            if (!sauce) {
+                return res.status(404).json({ message: 'Sauce not found' });
+            }
+
+            if (sauce.userId === userId) {
+                return res.status(401).json({ message: "You can't like or dislike your own sauce" });
+            }
+
+            let message = '';
+
+            if (sauce.usersLiked.includes(userId)) {
+                const index = sauce.usersLiked.indexOf(userId);
+                sauce.usersLiked.splice(index, 1);
+                message = 'Sauce unliked';
+            } else if (sauce.usersDisliked.includes(userId)) {
+                const index = sauce.usersDisliked.indexOf(userId);
+                sauce.usersDisliked.splice(index, 1);
+                message = 'Sauce undisliked';
+            } else {
+                sauce.usersLiked.push(userId);
+                message = 'Sauce liked';
+            }
+
+            sauce
+                .save()
+                .then(() => res.status(200).json({ message }))
+                .catch((error) => res.status(500).json({ error }));
+        })
+        .catch((error) => res.status(500).json({ error }));
+};
