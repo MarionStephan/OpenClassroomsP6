@@ -8,13 +8,13 @@ var schema = new passwordValidator();
 
 // Add properties to it
 schema
-.is().min(8)                                    // Minimum length 8
-.is().max(100)                                  // Maximum length 100
-.has().uppercase()                              // Must have uppercase letters
-.has().lowercase()                              // Must have lowercase letters
-.has().digits(2)                                // Must have at least 2 digits
-.has().not().spaces()                           // Should not have spaces
-.is().not().oneOf(['Passw0rd', 'Password123']); // Blacklist these values
+    .is().min(8)                                    // Minimum length 8
+    .is().max(100)                                  // Maximum length 100
+    .has().uppercase()                              // Must have uppercase letters
+    .has().lowercase()                              // Must have lowercase letters
+    .has().digits(2)                                // Must have at least 2 digits
+    .has().not().spaces()                           // Should not have spaces
+    .is().not().oneOf(['MoDePasse', 'MotDePasse123']); // Blacklist these values
 
 exports.signup = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
@@ -23,9 +23,14 @@ exports.signup = (req, res, next) => {
                 email: req.body.email,
                 password: hash
             });
-            user.save()
-                .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
-                .catch(error => res.status(400).json({ error }));
+            if (!schema.validate(req.body.password)) {
+                console.log('Invalid password');
+            } else {
+                user.save()
+                    .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+                    .catch(error => res.status(400).json({ error }));
+            }
+
         })
         .catch(error => res.status(500).json({ error }));
 };

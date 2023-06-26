@@ -21,28 +21,39 @@ exports.modifySauce = (req, res, next) => {
             if (sauce.userId != req.auth.userId) {
                 res.status(401).json({ message: 'Not authorized' });
             } else {
-                const filename = sauce.imageUrl.split("/images/")[1];
-                fs.unlink(`images/${filename}`, (error) => {
-                    if (error) {
-                        console.log('Erreur lors de la suppression de l\'image', error);
-                    } else {
-                        const sauceObject = req.file ? {
-                            ...JSON.parse(req.body.sauce),
-                            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-                        } : { ...req.body };
-                        delete sauceObject._userId;
+                let sauceObject = {};
 
-                        Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
-                            .then(() => res.status(200).json({ message: 'Sauce modifiée !' }))
-                            .catch(error => res.status(401).json({ error }));
-                    }
-                });
+                if (req.file) {
+                    // Si une nouvelle image est fournie, supprimer l'ancienne image
+                    const filename = sauce.imageUrl.split("/images/")[1];
+                    fs.unlink(`images/${filename}`, (error) => {
+                        if (error) {
+                            console.log('Erreur lors de la suppression de l\'image', error);
+                        }
+                    });
+
+                    // Mettre à jour les données de la sauce avec la nouvelle image
+                    sauceObject = {
+                        ...JSON.parse(req.body.sauce),
+                        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+                    };
+                } else {
+                    // Si aucune nouvelle image n'est fournie, simplement mettre à jour les autres données de la sauce
+                    sauceObject = { ...req.body };
+                }
+
+                delete sauceObject._userId;
+
+                Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+                    .then(() => res.status(200).json({ message: 'Sauce modifiée !' }))
+                    .catch(error => res.status(401).json({ error }));
             }
         })
         .catch((error) => {
             res.status(400).json({ error });
         });
 };
+
 
 
 exports.deleteSauce = (req, res, next) => {
@@ -106,19 +117,22 @@ exports.likeOrDislike = (req, res, next) => {
                 return res.status(404).json({ message: 'Sauce non trouvée' });
             }
 
-            // Vérifier si l'utilisateur est le créateur de la sauce
-            if (sauce.userId === userId) {
-                return res.status(401).json({ message: "Vous ne pouvez pas liker ou disliker votre propre sauce" });
-            }
-
             let message = '';
 
             switch (likeValue) {
                 case -1:
                     // Dislike
-                    sauce.dislikes++;
-                    sauce.usersDisliked.push(userId);
-                    message = 'Votre avis est bien pris en compte (dislike) !';
+                    const dislikedUser = sauce.usersDisliked.indexOf(userId);
+
+                    if (dislikedUser !== -1) {
+                        message = 'Vous ne pouvez pas disliker plusieurs fois !';
+                    }
+                    else {
+                        sauce.dislikes++;
+                        sauce.usersDisliked.push(userId);
+                        message = 'Votre dislike a bien été pris en compte !';
+                    }
+
                     break;
 
                 case 0:
@@ -139,9 +153,16 @@ exports.likeOrDislike = (req, res, next) => {
 
                 case 1:
                     // Like
-                    sauce.likes++;
-                    sauce.usersLiked.push(userId);
-                    message = 'Votre avis est bien pris en compte (like) !';
+                    const likedUser = sauce.usersLiked.indexOf(userId);
+
+                    if (likedUser !== -1) {
+                        message = 'Vous ne pouvez pas liker plusieurs fois !';
+                    } else {
+                        sauce.likes++;
+                        sauce.usersLiked.push(userId);
+                        message = 'Votre like a bien été pris en compte !';
+                    }
+
                     break;
 
                 default:

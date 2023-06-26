@@ -16,13 +16,12 @@ mongoose.connect('mongodb+srv://Marion:MotDePasse@cluster0.cahhzo4.mongodb.net/?
 
 
 app.use(express.json());
-  app.use((req, res, next) => 
-  {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-      next();
-  });
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
 
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
