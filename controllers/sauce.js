@@ -96,38 +96,62 @@ exports.getOneSauce = (req, res, next) => {
 };
 
 exports.likeOrDislike = (req, res, next) => {
-    const { id } = req.params;
-    const { userId } = req.auth;
+    const sauceId = req.params.id;
+    const userId = req.body.userId;
+    const likeValue = req.body.like;
 
-    Sauce.findById(id)
+    Sauce.findById(sauceId)
         .then((sauce) => {
             if (!sauce) {
-                return res.status(404).json({ message: 'Sauce not found' });
+                return res.status(404).json({ message: 'Sauce non trouvée' });
             }
 
+            // Vérifier si l'utilisateur est le créateur de la sauce
             if (sauce.userId === userId) {
-                return res.status(401).json({ message: "You can't like or dislike your own sauce" });
+                return res.status(401).json({ message: "Vous ne pouvez pas liker ou disliker votre propre sauce" });
             }
 
             let message = '';
 
-            if (sauce.usersLiked.includes(userId)) {
-                const index = sauce.usersLiked.indexOf(userId);
-                sauce.usersLiked.splice(index, 1);
-                message = 'Sauce unliked';
-            } else if (sauce.usersDisliked.includes(userId)) {
-                const index = sauce.usersDisliked.indexOf(userId);
-                sauce.usersDisliked.splice(index, 1);
-                message = 'Sauce undisliked';
-            } else {
-                sauce.usersLiked.push(userId);
-                message = 'Sauce liked';
+            switch (likeValue) {
+                case -1:
+                    // Dislike
+                    sauce.dislikes++;
+                    sauce.usersDisliked.push(userId);
+                    message = 'Votre avis est bien pris en compte (dislike) !';
+                    break;
+
+                case 0:
+                    // Retirer le like ou le dislike
+                    const likedIndex = sauce.usersLiked.indexOf(userId);
+                    const dislikedIndex = sauce.usersDisliked.indexOf(userId);
+
+                    if (likedIndex !== -1) {
+                        sauce.likes--;
+                        sauce.usersLiked.splice(likedIndex, 1);
+                        message = 'Votre avis a bien été modifié !';
+                    } else if (dislikedIndex !== -1) {
+                        sauce.dislikes--;
+                        sauce.usersDisliked.splice(dislikedIndex, 1);
+                        message = 'Votre avis a bien été modifié !';
+                    }
+                    break;
+
+                case 1:
+                    // Like
+                    sauce.likes++;
+                    sauce.usersLiked.push(userId);
+                    message = 'Votre avis est bien pris en compte (like) !';
+                    break;
+
+                default:
+                    return res.status(400).json({ message: 'Valeur non valide pour like' });
             }
 
-            sauce
-                .save()
+            sauce.save()
                 .then(() => res.status(200).json({ message }))
                 .catch((error) => res.status(500).json({ error }));
         })
         .catch((error) => res.status(500).json({ error }));
 };
+
