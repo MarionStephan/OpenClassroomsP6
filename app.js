@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 const path = require('path');
+require('dotenv').config()
 const app = express();
 const helmet = require("helmet");
-
-mongoose.connect('mongodb+srv://Marion:MotDePasse@cluster0.cahhzo4.mongodb.net/?retryWrites=true&w=majority',
+mongoose.connect(process.env.URL_BDD,
   {
     useNewUrlParser: true,
     useUnifiedTopology: true
