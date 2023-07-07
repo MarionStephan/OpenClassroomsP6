@@ -3,19 +3,23 @@ const mongoose = require('mongoose');
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 const path = require('path');
-require('dotenv').config()
+require('dotenv').config();
+
 const app = express();
 const helmet = require("helmet");
-mongoose.connect(process.env.URL_BDD,
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
+
+// Connexion à la base de données MongoDB
+mongoose.connect(process.env.URL_BDD, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
-
+// Configuration de l'application
 app.use(express.json());
+
+// Configuration des en-têtes CORS
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
@@ -23,10 +27,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Configuration de Helmet pour la sécurité
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
+
+// Gestion des images statiques
 app.use('/images', express.static(path.join(__dirname, 'images')));
+
+// Routes pour l'authentification
 app.use('/api/auth', userRoutes);
+
+// Routes pour les sauces
 app.use('/api/sauces', sauceRoutes);
 
 module.exports = app;
