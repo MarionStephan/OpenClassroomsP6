@@ -3,11 +3,7 @@ const mongoose = require('mongoose');
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 const rateLimit = require('express-rate-limit');
-const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 5, // Nombre maximum de requêtes autorisées par fenêtre
-  message: "Trop de requêtes effectuées. Veuillez réessayer plus tard.",
-});
+
 const path = require('path');
 require('dotenv').config();
 
@@ -38,7 +34,12 @@ app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 
 // Configuration de rate-limit
-app.use("/api/", limiter);
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // Nombre maximum de requêtes autorisées par fenêtre
+  message: "Trop de requêtes effectuées. Veuillez réessayer plus tard.",
+});
+app.use(limiter);
 
 // Gestion des images statiques
 app.use('/images', express.static(path.join(__dirname, 'images')));
