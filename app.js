@@ -35,8 +35,8 @@ app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 
 // Configuration de rate-limit
 const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 5, // Nombre maximum de requêtes autorisées par fenêtre
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Nombre maximum de requêtes autorisées par fenêtre
   message: "Trop de requêtes effectuées. Veuillez réessayer plus tard.",
 });
 app.use(limiter);
